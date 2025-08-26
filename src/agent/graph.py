@@ -1,51 +1,54 @@
-"""LangGraph single-node graph template.
+"""LangGraph single-node interview graph.
 
-Returns a predefined response. Replace logic and configuration as needed.
+- Uses `interrupt(...)` to truly pause for candidate input.
+- No custom checkpointer (compatible with `langgraph dev`).
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Dict
-
-from langgraph.graph import StateGraph
-from langgraph.runtime import Runtime
-
-from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
-import os
-from openai import OpenAI
-from typing import List, Optional, Dict, Any
 import json
-from pydantic import BaseModel, Field
+import os
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 from dotenv import load_dotenv
+from openai import OpenAI
+from pydantic import BaseModel, Field
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
 
+from langgraph.graph import StateGraph
+from langgraph.types import interrupt
 
+# --------------------------------------------------------------------
+# Bootstrap
+# --------------------------------------------------------------------
 console = Console()
 load_dotenv()
-
-
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
-# ------------------------------
-# Config & Utilities
-# ------------------------------
 
 DEFAULT_MODEL = os.environ.get("INTERVIEW_MODEL", "gpt-4.1-mini")
 
 
+# --------------------------------------------------------------------
+# LLM wrapper
+# --------------------------------------------------------------------
 class LLM:
     def __init__(self, model: str = DEFAULT_MODEL):
         self.client = OpenAI()
         self.model = model
 
-    def complete(self, system: str, user: str, json_schema: Optional[Dict[str, Any]] = None) -> str | Dict[str, Any]:
-        # Use Responses API-style call for structured output if schema provided
+    def complete(
+        self,
+        system: str,
+        user: str,
+        json_schema: Optional[Dict[str, Any]] = None,
+    ) -> str | Dict[str, Any]:
         if json_schema:
-            response = self.client.chat.completions.create(
+            resp = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": system},
@@ -54,10 +57,10 @@ class LLM:
                 response_format={"type": "json_schema", "json_schema": json_schema},
                 temperature=0.3,
             )
-            content = response.choices[0].message.content
+            content = resp.choices[0].message.content
             return json.loads(content)
         else:
-            response = self.client.chat.completions.create(
+            resp = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": system},
@@ -65,21 +68,24 @@ class LLM:
                 ],
                 temperature=0.3,
             )
-            return response.choices[0].message.content.strip()
+            return resp.choices[0].message.content.strip()
 
 
-# ------------------------------
+# --------------------------------------------------------------------
 # Data Models
-# ------------------------------
-
+# --------------------------------------------------------------------
 class Topic(BaseModel):
     title: str
     question: str
-    expected_answer_bullets: List[str] = Field(description="3-6 bullets describing the gold-standard answer")
+    expected_answer_bullets: List[str] = Field(
+        description="3-6 bullets describing the gold-standard answer"
+    )
+
 
 class InterviewPlan(BaseModel):
     role_summary: str
     topics: List[Topic]
+
 
 class Turn(BaseModel):
     role: str  # "agent" | "candidate"
@@ -88,13 +94,16 @@ class Turn(BaseModel):
     rating: Optional[float] = None
     completeness: Optional[str] = None  # "complete" | "partial" | "missing"
 
+
 class Transcript(BaseModel):
     interviewee_name: Optional[str] = None
     role_title: str
     jd_excerpt: str
     created_at: str
     plan: InterviewPlan
-    turns: List[Turn] = []
+    # use default_factory to avoid mutable default list bug
+    turns: List[Turn] = Field(default_factory=list)
+
 
 class Assessment(BaseModel):
     overall_score: float
@@ -103,10 +112,9 @@ class Assessment(BaseModel):
     topic_scores: List[float]
 
 
-# ------------------------------
-# Agent Implementations
-# ------------------------------
-
+# --------------------------------------------------------------------
+# Agents
+# --------------------------------------------------------------------
 class PlannerAgent:
     SYSTEM = (
         "You are an expert interview planner for tech roles. Produce exactly 5 topics. "
@@ -117,9 +125,13 @@ class PlannerAgent:
     @staticmethod
     def plan(llm: LLM, jd: str, resume: str, role_title: str) -> InterviewPlan:
         user = f"""
-        ROLE TITLE: {role_title}
-        JOB DESCRIPTION:\n{jd}\n\nRESUME:\n{resume}
-        """
+ROLE TITLE: {role_title}
+JOB DESCRIPTION:
+{jd}
+
+RESUME:
+{resume}
+        """.strip()
         schema = {
             "name": "interview_plan_schema",
             "schema": {
@@ -185,18 +197,18 @@ class InterviewAgent:
 
     @staticmethod
     def encourage_prompt() -> str:
-        return (
-            "Thanks. Could you add any specific details, examples, metrics, or trade-offs you considered?"
-        )
+        return "Thanks. Could you add any specific details, examples, metrics, or trade-offs you considered?"
 
     @staticmethod
     def check_completeness(llm: LLM, topic: Topic, answer: str) -> Dict[str, str]:
-        user = json.dumps({
-            "topic_title": topic.title,
-            "question": topic.question,
-            "expected_answer_bullets": topic.expected_answer_bullets,
-            "candidate_answer": answer,
-        })
+        user = json.dumps(
+            {
+                "topic_title": topic.title,
+                "question": topic.question,
+                "expected_answer_bullets": topic.expected_answer_bullets,
+                "candidate_answer": answer,
+            }
+        )
         schema = {
             "name": "completeness_schema",
             "schema": {
@@ -213,7 +225,9 @@ class InterviewAgent:
     @staticmethod
     def rate_answer(llm: LLM, topic: Topic, answer: str) -> float:
         user = (
-            f"QUESTION: {topic.question}\nEXPECTED BULLETS: {topic.expected_answer_bullets}\nCANDIDATE ANSWER: {answer}\n"
+            f"QUESTION: {topic.question}\n"
+            f"EXPECTED BULLETS: {topic.expected_answer_bullets}\n"
+            f"CANDIDATE ANSWER: {answer}\n"
             "Respond only with a number between 1.0 and 5.0 with one decimal."
         )
         val = llm.complete(InterviewAgent.SYSTEM_RATE, user)
@@ -232,10 +246,7 @@ class AssessorAgent:
 
     @staticmethod
     def assess(llm: LLM, plan: InterviewPlan, transcript: Transcript) -> Assessment:
-        user = json.dumps({
-            "plan": plan.model_dump(),
-            "transcript": transcript.model_dump(),
-        })
+        user = json.dumps({"plan": plan.model_dump(), "transcript": transcript.model_dump()})
         schema = {
             "name": "assessment_schema",
             "schema": {
@@ -244,7 +255,12 @@ class AssessorAgent:
                     "overall_score": {"type": "number"},
                     "strengths": {"type": "array", "items": {"type": "string"}},
                     "improvements": {"type": "array", "items": {"type": "string"}},
-                    "topic_scores": {"type": "array", "items": {"type": "number"}, "minItems": 5, "maxItems": 5},
+                    "topic_scores": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "minItems": 5,
+                        "maxItems": 5,
+                    },
                 },
                 "required": ["overall_score", "strengths", "improvements", "topic_scores"],
             },
@@ -253,12 +269,9 @@ class AssessorAgent:
         return Assessment(**data)
 
 
-# ------------------------------
+# --------------------------------------------------------------------
 # LangGraph Orchestration
-# ------------------------------
-
-
-
+# --------------------------------------------------------------------
 @dataclass
 class GraphState:
     jd: str
@@ -268,7 +281,6 @@ class GraphState:
     plan: Optional[InterviewPlan] = None
     transcript: Optional[Transcript] = None
     assessment: Optional[Assessment] = None
-    provided_answers: Optional[List[str]] = None  # optional preloaded answers file
 
 
 def node_plan(state: GraphState) -> GraphState:
@@ -276,14 +288,12 @@ def node_plan(state: GraphState) -> GraphState:
     llm = LLM()
     plan = PlannerAgent.plan(llm, state.jd, state.resume, state.role_title)
     state.plan = plan
-    # initialize transcript
     state.transcript = Transcript(
         interviewee_name=None,
         role_title=state.role_title,
-        jd_excerpt=state.jd[:800],
+        jd_excerpt=(state.jd or "")[:800],
         created_at=datetime.utcnow().isoformat(),
         plan=plan,
-        turns=[],
     )
     console.print(Panel.fit("Interview plan generated (5 topics).", title="PlannerAgent", border_style="green"))
     return state
@@ -291,19 +301,19 @@ def node_plan(state: GraphState) -> GraphState:
 
 def node_greet(state: GraphState) -> GraphState:
     console.rule("[bold cyan]GreeterAgent")
+    assert state.plan is not None and state.transcript is not None
     llm = LLM()
     greeting = GreeterAgent.greet(llm, state.candidate_name, state.role_title)
-    console.print("\n[bold]Agent:[/bold]", greeting)
+    console.print("\n[bold]Agent:[/bold] ", greeting)
+
     state.transcript.turns.append(Turn(role="agent", content=greeting))
 
-    if state.provided_answers is not None and len(state.provided_answers) > 0:
-        answer = state.provided_answers.pop(0)
-        console.print("[bold]Candidate:[/bold] ", answer)
-    else:
-        answer = input("\nYour full name: ")
-    state.candidate_name = answer.strip()
-    state.transcript.interviewee_name = state.candidate_name
-    state.transcript.turns.append(Turn(role="candidate", content=state.candidate_name))
+    # Pause for candidate's name (dev server / Studio UI will show Resume input)
+    name = interrupt({"expect": "candidate_name", "prompt": "Please confirm your full name."}) or ""
+    name = name.strip()
+    state.candidate_name = name
+    state.transcript.interviewee_name = name
+    state.transcript.turns.append(Turn(role="candidate", content=name))
     return state
 
 
@@ -311,77 +321,50 @@ def node_interview(state: GraphState) -> GraphState:
     console.rule("[bold magenta]InterviewAgent")
     assert state.plan is not None and state.transcript is not None
     llm = LLM()
+
     for idx, topic in enumerate(state.plan.topics):
-        console.print(Panel.fit(f"Topic {idx+1}: {topic.title}", border_style="magenta"))
+        console.print(Panel.fit(f"Topic {idx + 1}: {topic.title}", border_style="magenta"))
         q = topic.question
         console.print(f"[bold]Agent:[/bold] {q}")
         state.transcript.turns.append(Turn(role="agent", content=q, topic_index=idx))
 
-        # get initial candidate answer
-        if state.provided_answers is not None and len(state.provided_answers) > 0:
-            cand = state.provided_answers.pop(0)
-            console.print("[bold]Candidate:[/bold] ", cand)
-        else:
-            cand = input("Your answer: ")
+        # Pause for initial answer
+        cand = interrupt({"expect": "answer", "topic_index": idx, "question": q}) or ""
         state.transcript.turns.append(Turn(role="candidate", content=cand, topic_index=idx))
 
-        # completeness check
+        # Completeness check
         comp = InterviewAgent.check_completeness(llm, topic, cand)
         completeness = comp.get("status", "partial")
         rationale = comp.get("rationale", "")
-        state.transcript.turns.append(Turn(role="agent", content=f"Completeness check: {completeness} — {rationale}", topic_index=idx))
+        state.transcript.turns.append(
+            Turn(
+                role="agent",
+                content=f"Completeness check: {completeness} — {rationale}",
+                topic_index=idx,
+                completeness=completeness,
+            )
+        )
         console.print(f"[dim]Completeness: {completeness} — {rationale}[/dim]")
 
-        # encourage once if not complete
+        # Encourage if not complete, then pause again
         if completeness != "complete":
             nudge = InterviewAgent.encourage_prompt()
             console.print(f"[bold]Agent:[/bold] {nudge}")
             state.transcript.turns.append(Turn(role="agent", content=nudge, topic_index=idx))
 
-            if state.provided_answers is not None and len(state.provided_answers) > 0:
-                extra = state.provided_answers.pop(0)
-                console.print("[bold]Candidate:[/bold] ", extra)
-            else:
-                extra = input("Add more (optional, press Enter to skip): ")
+            extra = interrupt({"expect": "answer_extra", "topic_index": idx}) or ""
             if extra.strip():
                 state.transcript.turns.append(Turn(role="candidate", content=extra, topic_index=idx))
                 cand = cand + "\n" + extra
 
-        # rate
+        # Rate
         rating = InterviewAgent.rate_answer(llm, topic, cand)
-        state.transcript.turns.append(Turn(role="agent", content=f"Rating: {rating:.1f}", topic_index=idx, rating=rating))
+        state.transcript.turns.append(
+            Turn(role="agent", content=f"Rating: {rating:.1f}", topic_index=idx, rating=rating)
+        )
         console.print(f"[bold]Agent:[/bold] Thanks. Score for this question: [bold]{rating:.1f}/5.0[/bold]\n")
 
     return state
-
-
-def node_greet(state: GraphState) -> GraphState:
-    console.rule("[bold cyan]GreeterAgent")
-    llm = LLM()
-    greeting = GreeterAgent.greet(llm, state.candidate_name, state.role_title)
-    console.print("\n[bold]Agent:[/bold]", greeting)
-    # Ensure transcript is initialized
-    if state.transcript is None:
-        state.transcript = Transcript(
-            interviewee_name=None,
-            role_title=state.role_title,
-            jd_excerpt=state.jd[:800] if state.jd else "",
-            created_at=datetime.utcnow().isoformat(),
-            plan=state.plan if state.plan else InterviewPlan(role_summary="", topics=[]),
-            turns=[],
-        )
-    state.transcript.turns.append(Turn(role="agent", content=greeting))
-
-    if state.provided_answers is not None and len(state.provided_answers) > 0:
-        answer = state.provided_answers.pop(0)
-        console.print("[bold]Candidate:[/bold] ", answer)
-    else:
-        answer = input("\nYour full name: ")
-    state.candidate_name = answer.strip()
-    state.transcript.interviewee_name = state.candidate_name
-    state.transcript.turns.append(Turn(role="candidate", content=state.candidate_name))
-    return state
-
 
 
 def node_assess(state: GraphState) -> GraphState:
@@ -391,7 +374,6 @@ def node_assess(state: GraphState) -> GraphState:
     assessment = AssessorAgent.assess(llm, state.plan, state.transcript)
     state.assessment = assessment
 
-    # pretty print summary
     table = Table(title="Interview Feedback", show_lines=True)
     table.add_column("Aspect")
     table.add_column("Details")
@@ -401,27 +383,29 @@ def node_assess(state: GraphState) -> GraphState:
     console.print(table)
     return state
 
+
 def node_finish(state: GraphState) -> GraphState:
-    # Persist transcript
-    tsdir = Path("transcripts"); tsdir.mkdir(exist_ok=True)
+    tsdir = Path("transcripts")
+    tsdir.mkdir(exist_ok=True)
     tsname = datetime.utcnow().strftime("%Y%m%d_%H%M%S") + "_transcript.json"
     out = tsdir / tsname
     with out.open("w", encoding="utf-8") as f:
         json.dump(state.transcript.model_dump(), f, ensure_ascii=False, indent=2)
     console.print(Panel.fit(f"Transcript saved to {out}", border_style="yellow"))
-    # Persist assessment
+
     if state.assessment:
-        aname = tsname.replace("_transcript.json", "_assessment.json")
-        aout = tsdir / aname
+        aout = tsdir / tsname.replace("_transcript.json", "_assessment.json")
         with aout.open("w", encoding="utf-8") as f:
             json.dump(state.assessment.model_dump(), f, ensure_ascii=False, indent=2)
-    console.print(Panel.fit(f"Assessment saved to {aout}", border_style="yellow"))
+        console.print(Panel.fit(f"Assessment saved to {aout}", border_style="yellow"))
+
     console.rule("[bold]Done")
     return state
 
 
-
-# Define the graph
+# --------------------------------------------------------------------
+# Graph definition (no custom checkpointer)
+# --------------------------------------------------------------------
 graph = (
     StateGraph(GraphState)
     .add_node("plan", node_plan)
@@ -429,7 +413,6 @@ graph = (
     .add_node("interview", node_interview)
     .add_node("assess", node_assess)
     .add_node("finish", node_finish)
-
     .set_entry_point("plan")
     .add_edge("plan", "greet")
     .add_edge("greet", "interview")
