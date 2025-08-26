@@ -1,0 +1,20 @@
+{
+  "overall_score": 1.0,
+  "strengths": [
+    "The candidate was able to respond promptly to questions, indicating basic communication ability."
+  ],
+  "improvements": [
+    "Provide detailed and specific answers addressing each question's key points.",
+    "Demonstrate relevant experience and examples related to AI strategy, technical integration, and governance.",
+    "Show understanding of AI tools integration into development workflows and CI/CD pipelines.",
+    "Explain approaches to AI governance, ethical compliance, and fostering AI-native culture.",
+    "Prepare to discuss KPIs, collaboration with cross-functional teams, and continuous improvement in AI adoption."
+  ],
+  "topic_scores": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ]
+}

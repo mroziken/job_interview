@@ -1,0 +1,262 @@
+{
+  "interviewee_name": "Michal",
+  "role_title": "Chief AI Officer",
+  "jd_excerpt": "About the job\nRole Summary:\n\nExecutive-level role responsible for leading AI integration across development, architecture, and product functions. Drives the organisation’s AI strategy while ensuring technical execution aligns with business objectives.\n\n\nCore Responsibilities:\n\nLead deployment of AI-powered tools (e.g., Copilot, automated testing, AI-assisted debugging) to optimise development workflows\nIntegrate AI into CI/CD pipelines and software lifecycle for efficiency, quality, and scalability.\nIdentify and implement AI capabilities within products, collaborating with product and engineering teams\nOversee technical integration of ML models into applications, ensuring performance in production environments\nDefine and execute AI strategy aligned with company goals and digital transforma",
+  "created_at": "2025-08-26T10:09:53.583141",
+  "plan": {
+    "role_summary": "Executive-level role responsible for leading AI integration across development, architecture, and product functions, driving AI strategy aligned with business objectives.",
+    "topics": [
+      {
+        "title": "AI Strategy Development and Execution",
+        "question": "How would you develop and execute an AI strategy that aligns with our company's business goals and digital transformation initiatives?",
+        "expected_answer_bullets": [
+          "Conduct thorough assessment of current business objectives and identify areas where AI can add value.",
+          "Collaborate with cross-functional teams including product, engineering, and business stakeholders to align AI initiatives with company goals.",
+          "Define clear KPIs and success metrics to measure AI impact on business outcomes.",
+          "Prioritize AI projects based on feasibility, ROI, and strategic importance.",
+          "Continuously monitor AI advancements and adapt strategy to incorporate emerging technologies and market trends.",
+          "Communicate AI vision effectively across the organization to foster buy-in and support."
+        ]
+      },
+      {
+        "title": "Integrating AI into Development Pipelines",
+        "question": "Can you describe your approach to integrating AI-powered tools into CI/CD pipelines and software development workflows?",
+        "expected_answer_bullets": [
+          "Identify key development bottlenecks where AI tools like Copilot or AI-assisted debugging can improve efficiency.",
+          "Design seamless integration of AI tools into existing CI/CD pipelines ensuring minimal disruption.",
+          "Ensure AI models and tools are tested thoroughly for reliability and performance before deployment.",
+          "Collaborate with DevOps and QA teams to automate testing and monitoring of AI components.",
+          "Implement feedback loops to continuously improve AI tool effectiveness based on developer input.",
+          "Maintain documentation and training to enable teams to leverage AI tools effectively."
+        ]
+      },
+      {
+        "title": "Technical Leadership in AI and ML Deployment",
+        "question": "What experience do you have overseeing the technical integration of machine learning models into production applications?",
+        "expected_answer_bullets": [
+          "Hands-on experience with ML frameworks such as TensorFlow and PyTorch for model development and deployment.",
+          "Expertise in cloud platforms like Google Cloud Platform, AWS, or Azure for scalable AI infrastructure.",
+          "Implementing MLOps best practices including model versioning, monitoring, and automated retraining.",
+          "Ensuring production models meet performance, latency, and reliability requirements.",
+          "Collaborating with engineering teams to embed ML models into microservices and APIs.",
+          "Addressing challenges related to data quality, model drift, and compliance in production environments."
+        ]
+      },
+      {
+        "title": "AI Governance and Ethical Compliance",
+        "question": "How do you establish governance frameworks to ensure responsible AI use and compliance with data and AI regulations?",
+        "expected_answer_bullets": [
+          "Develop policies and guidelines for ethical AI development and deployment aligned with industry standards.",
+          "Implement processes for transparency, explainability, and bias mitigation in AI models.",
+          "Ensure compliance with relevant data protection laws such as GDPR and AI-specific regulations.",
+          "Set up cross-functional committees or boards to oversee AI ethics and governance.",
+          "Promote training and awareness programs on responsible AI practices across teams.",
+          "Continuously audit AI systems for compliance and ethical considerations."
+        ]
+      },
+      {
+        "title": "Building and Leading AI-Native Development Culture",
+        "question": "What strategies do you use to foster an AI-native development culture and enable teams through training and mentorship?",
+        "expected_answer_bullets": [
+          "Promote hands-on learning and experimentation with AI tools and technologies within teams.",
+          "Organize workshops, training sessions, and knowledge-sharing forums focused on AI and ML.",
+          "Mentor technical leaders and developers to build AI expertise and confidence.",
+          "Encourage collaboration between AI researchers, product managers, and engineers to drive innovation.",
+          "Recognize and reward AI-driven initiatives that improve products or processes.",
+          "Create an environment that embraces agile methodologies and continuous improvement in AI adoption."
+        ]
+      }
+    ]
+  },
+  "turns": [
+    {
+      "role": "agent",
+      "content": "Hello There, welcome to your interview for the Chief AI Officer role. Could you please confirm your full name for me?",
+      "topic_index": null,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "candidate",
+      "content": "Michal",
+      "topic_index": null,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "How would you develop and execute an AI strategy that aligns with our company's business goals and digital transformation initiatives?",
+      "topic_index": 0,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "candidate",
+      "content": "I don't know",
+      "topic_index": 0,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "Completeness check: missing — The candidate did not provide any answer to the question, thus none of the expected points were addressed.",
+      "topic_index": 0,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "Thanks. Could you add any specific details, examples, metrics, or trade-offs you considered?",
+      "topic_index": 0,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "Rating: 1.0",
+      "topic_index": 0,
+      "rating": 1.0,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "Can you describe your approach to integrating AI-powered tools into CI/CD pipelines and software development workflows?",
+      "topic_index": 1,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "candidate",
+      "content": "No",
+      "topic_index": 1,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "Completeness check: missing — The candidate provided no answer, so none of the expected points about integrating AI tools into CI/CD pipelines were addressed.",
+      "topic_index": 1,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "Thanks. Could you add any specific details, examples, metrics, or trade-offs you considered?",
+      "topic_index": 1,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "Rating: 1.0",
+      "topic_index": 1,
+      "rating": 1.0,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "What experience do you have overseeing the technical integration of machine learning models into production applications?",
+      "topic_index": 2,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "candidate",
+      "content": "None",
+      "topic_index": 2,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "Completeness check: missing — The candidate provided no information regarding their experience with technical integration of machine learning models into production applications, thus none of the expected points were addressed.",
+      "topic_index": 2,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "Thanks. Could you add any specific details, examples, metrics, or trade-offs you considered?",
+      "topic_index": 2,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "Rating: 1.0",
+      "topic_index": 2,
+      "rating": 1.0,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "How do you establish governance frameworks to ensure responsible AI use and compliance with data and AI regulations?",
+      "topic_index": 3,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "candidate",
+      "content": "I don't know",
+      "topic_index": 3,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "Completeness check: missing — The candidate did not provide any information or attempt to address the question regarding establishing governance frameworks for responsible AI use and compliance.",
+      "topic_index": 3,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "Thanks. Could you add any specific details, examples, metrics, or trade-offs you considered?",
+      "topic_index": 3,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "Rating: 1.0",
+      "topic_index": 3,
+      "rating": 1.0,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "What strategies do you use to foster an AI-native development culture and enable teams through training and mentorship?",
+      "topic_index": 4,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "candidate",
+      "content": "I don't know",
+      "topic_index": 4,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "Completeness check: missing — The candidate did not provide any strategies or relevant information related to fostering an AI-native development culture or enabling teams through training and mentorship.",
+      "topic_index": 4,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "Thanks. Could you add any specific details, examples, metrics, or trade-offs you considered?",
+      "topic_index": 4,
+      "rating": null,
+      "completeness": null
+    },
+    {
+      "role": "agent",
+      "content": "Rating: 1.0",
+      "topic_index": 4,
+      "rating": 1.0,
+      "completeness": null
+    }
+  ]
+}
